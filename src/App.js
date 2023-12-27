@@ -5,6 +5,9 @@ import Loader from "./components/Loader";
 import Error from "./components/Error";
 import StarterScreen from "./components/StarterScreen";
 import Question from "./components/Question";
+import NextButton from "./components/NextButton";
+import Progress from "./components/Progress";
+import FinishedScreen from "./components/FinishedScreen";
 
 function App() {
   
@@ -38,7 +41,7 @@ function App() {
           ...state, status: "active"
         }  
       case "newAnswer":
-        const question = state.questions.at(state.index)
+        const question = state.questions.at(state.index);
         console.log(question)
 
         return{
@@ -46,13 +49,23 @@ function App() {
           answer: action.payload,
           points : action.payload === question.correctOption ? state.points + question.points : state.points,
         }  
+
+       case "nextQuestion":
+        return{
+          ...state, 
+          index : state.index + 1,
+          answer : null
+        } 
       default:
         throw new Error ("data unknown")
     }
   }
 
-  const [{questions, status, index, answer}, dispatch] = useReducer(reducer, initialState);
+  const [{questions, status, index, answer, points}, dispatch] = useReducer(reducer, initialState);
+  console.log(questions)
   const numQuestion = questions.length;
+  const maxPossiblePoint = questions.reduce((acc, cur) => { return acc + cur.points}, 0)
+
   useEffect(function () {
     fetch("http://localhost:9000/questions")
     .then(res=> res.json() )
@@ -67,8 +80,16 @@ function App() {
          {status === "loading" && <Loader/>}
          {status === "error" && <Error/>}
          {status === "ready" && <StarterScreen dispatch={dispatch} numQuestion={numQuestion}/>}
-         {status === "active" && <Question question = {questions[index]} dispatch={dispatch} answer = {answer} />}
-        
+         {status === "active" && 
+         <>
+         <Progress answer={answer} maxPossiblePoint={maxPossiblePoint} numQuestion={numQuestion} index = {index} points = {points}/>
+         <Question question = {questions[index]} dispatch={dispatch} answer = {answer} />
+          <NextButton answer= {answer} dispatch = {dispatch}/>
+          </>
+          }
+          {status === 'finished' && <FinishedScreen points ={points} maxPossiblePoint={maxPossiblePoint}/>} 
+
+
       </Main>
     </div>
   );
