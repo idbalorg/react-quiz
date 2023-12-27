@@ -7,18 +7,21 @@ import StarterScreen from "./components/StarterScreen";
 import Question from "./components/Question";
 
 function App() {
+  
 
   const initialState = {
     questions: [],
 
     // loading, error, ready, active, finished
     status : "loading",
-    questions: [],
     index : 0,
-    answer : null
+    answer : null,
+    points : 0,
   }
 
   function reducer(state, action) {
+    console.log(state)
+
     switch (action.type) {
       case 'dataRecieved':
         return {
@@ -34,10 +37,14 @@ function App() {
         return{
           ...state, status: "active"
         }  
-
       case "newAnswer":
+        const question = state.questions.at(state.index)
+        console.log(question)
+
         return{
-          ...state, answer: action.payload
+          ...state, 
+          answer: action.payload,
+          points : action.payload === question.correctOption ? state.points + question.points : state.points,
         }  
       default:
         throw new Error ("data unknown")
@@ -52,6 +59,7 @@ function App() {
     .then(data=> dispatch({type : "dataRecieved", payload: data}))
     .catch(()=>dispatch({type: "dataFailed"}))
   }, [])
+
   return (
     <div className="app">
       <Header/>
