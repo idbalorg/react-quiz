@@ -1,7 +1,7 @@
 import React from 'react'
 import Options from './Options'
 
-export default function Question({question, answer, dispatch= {dispatch}}) {
+export default function Question({question, answer, dispatch}) {
     console.log(question.question)
   return (
     <div>

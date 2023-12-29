@@ -20,6 +20,7 @@ function App() {
     index : 0,
     answer : null,
     points : 0,
+    highscore : 0,
   }
 
   function reducer(state, action) {
@@ -39,6 +40,12 @@ function App() {
       case "start":
         return{
           ...state, status: "active"
+        }  
+
+      case "finished" :
+        return{
+          ...state, status : 'finished', 
+          highscore : state.points > highscore ? state.point : highscore
         }  
       case "newAnswer":
         const question = state.questions.at(state.index);
@@ -61,7 +68,7 @@ function App() {
     }
   }
 
-  const [{questions, status, index, answer, points}, dispatch] = useReducer(reducer, initialState);
+  const [{questions, status, index, answer, points, highscore}, dispatch] = useReducer(reducer, initialState);
   console.log(questions)
   const numQuestion = questions.length;
   const maxPossiblePoint = questions.reduce((acc, cur) => { return acc + cur.points}, 0)
@@ -84,10 +91,10 @@ function App() {
          <>
          <Progress answer={answer} maxPossiblePoint={maxPossiblePoint} numQuestion={numQuestion} index = {index} points = {points}/>
          <Question question = {questions[index]} dispatch={dispatch} answer = {answer} />
-          <NextButton answer= {answer} dispatch = {dispatch}/>
+          <NextButton index={index} numQuestion={numQuestion} answer= {answer} dispatch = {dispatch}/>
           </>
           }
-          {status === 'finished' && <FinishedScreen points ={points} maxPossiblePoint={maxPossiblePoint}/>} 
+          {status === 'finished' && <FinishedScreen highscore={highscore} points ={points} maxPossiblePoint={maxPossiblePoint}/>} 
 
 
       </Main>
