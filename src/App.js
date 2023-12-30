@@ -8,10 +8,13 @@ import Question from "./components/Question";
 import NextButton from "./components/NextButton";
 import Progress from "./components/Progress";
 import FinishedScreen from "./components/FinishedScreen";
+import Footer from "./components/Footer";
+import Timer from "./components/Timer";
 
 function App() {
   
-
+  const TIME_PER_QUESTION = 30
+  console.log(TIME_PER_QUESTION)
   const initialState = {
     questions: [],
 
@@ -21,6 +24,7 @@ function App() {
     answer : null,
     points : 0,
     highscore : 0,
+    timeRemaining : null
   }
 
   function reducer(state, action) {
@@ -39,13 +43,21 @@ function App() {
         }  
       case "start":
         return{
-          ...state, status: "active"
+          ...state, status: "active",
+          timeRemaining : state.questions.length * TIME_PER_QUESTION
         }  
 
       case "finished" :
         return{
           ...state, status : 'finished', 
-          highscore : state.points > highscore ? state.point : highscore
+          highscore : state.points > state.highscore ? state.points : state.highscore
+        }
+        
+      case "tick":
+        return{
+          ...state, 
+          timeRemaining : state.timeRemaining - 1,
+          status : state.timeRemaining === 0 ? 'finished' : state.status
         }  
       case "newAnswer":
         const question = state.questions.at(state.index);
@@ -55,6 +67,13 @@ function App() {
           ...state, 
           answer: action.payload,
           points : action.payload === question.correctOption ? state.points + question.points : state.points,
+        }
+        
+      case "re-start":
+        return{
+          ...initialState, 
+          questions : state.questions,
+          status: "ready"
         }  
 
        case "nextQuestion":
@@ -68,7 +87,7 @@ function App() {
     }
   }
 
-  const [{questions, status, index, answer, points, highscore}, dispatch] = useReducer(reducer, initialState);
+  const [{questions, status, index, answer, points, highscore, timeRemaining}, dispatch] = useReducer(reducer, initialState);
   console.log(questions)
   const numQuestion = questions.length;
   const maxPossiblePoint = questions.reduce((acc, cur) => { return acc + cur.points}, 0)
@@ -91,10 +110,13 @@ function App() {
          <>
          <Progress answer={answer} maxPossiblePoint={maxPossiblePoint} numQuestion={numQuestion} index = {index} points = {points}/>
          <Question question = {questions[index]} dispatch={dispatch} answer = {answer} />
-          <NextButton index={index} numQuestion={numQuestion} answer= {answer} dispatch = {dispatch}/>
+         <Footer>
+            <Timer timeRemaining={timeRemaining} dispatch={dispatch}/>
+            <NextButton index={index} numQuestion={numQuestion} answer= {answer} dispatch = {dispatch}/>
+         </Footer>
           </>
           }
-          {status === 'finished' && <FinishedScreen highscore={highscore} points ={points} maxPossiblePoint={maxPossiblePoint}/>} 
+          {status === 'finished' && <FinishedScreen dispatch={dispatch} highscore={highscore} points ={points} maxPossiblePoint={maxPossiblePoint}/>} 
 
 
       </Main>
